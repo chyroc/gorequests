@@ -101,16 +101,37 @@ func (r *Request) WithBody(body interface{}) *Request {
 	return r
 }
 
-func (r *Request) Text() (string, error) {
-	if r.err != nil {
-		return "", r.err
+func (r *Request) Unmarshal(val interface{}) error {
+	bs, err := r.Bytes()
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(bs, val); err != nil {
+		return errors.Errorf("unmarshal %s to %s failed: %s", bs, reflect.TypeOf(val).Name(), err)
+	}
+	return nil
+}
+
+func (r *Request) Map() (map[string]interface{}, error) {
+	bs, err := r.Bytes()
+	if err != nil {
+		return nil, err
 	}
 
-	if err := r.doRead(); err != nil {
+	var m = make(map[string]interface{})
+	if err := json.Unmarshal(bs, &m); err != nil {
+		return nil, errors.Wrapf(err, "unmarshal resp(%s) failed", bs)
+	}
+	return m, nil
+}
+
+func (r *Request) Text() (string, error) {
+	bs, err := r.Bytes()
+	if err != nil {
 		return "", err
 	}
 
-	return string(r.bytes), nil
+	return string(bs), nil
 }
 
 func (r *Request) Bytes() ([]byte, error) {
@@ -123,21 +144,6 @@ func (r *Request) Bytes() ([]byte, error) {
 	}
 
 	return r.bytes, nil
-}
-
-func (r *Request) Unmarshal(val interface{}) error {
-	if r.err != nil {
-		return r.err
-	}
-
-	bs, err := r.Bytes()
-	if err != nil {
-		return err
-	}
-	if err := json.Unmarshal(bs, val); err != nil {
-		return errors.Errorf("unmarshal %s to %s failed: %s", bs, reflect.TypeOf(val).Name(), err)
-	}
-	return nil
 }
 
 func (r *Request) doRead() error {
@@ -160,7 +166,7 @@ func (r *Request) doRead() error {
 	var err error
 	r.bytes, err = ioutil.ReadAll(r.resp.Body)
 	if err != nil {
-		return errors.Errorf("read request(%s: %s) response failed: %w", r.Method, r.URL, err)
+		return errors.Wrapf(err, "read request(%s: %s) response failed", r.Method, r.URL)
 	}
 	logrus.Infof("[gorequests] %s: %s, doRead: %s", r.Method, r.URL, r.bytes)
 	r.isRead = true
@@ -193,7 +199,7 @@ func (r *Request) doRequest() error {
 
 	req, err := http.NewRequest(r.Method, r.URL, r.Body)
 	if err != nil {
-		return errors.Errorf("new request(%s: %s) failed: %w", r.Method, r.URL, err)
+		return errors.Wrapf(err, "new request(%s: %s) failed", r.Method, r.URL)
 	}
 
 	for k, v := range r.headers {
@@ -206,7 +212,7 @@ func (r *Request) doRequest() error {
 	}
 	resp, err := c.Do(req)
 	if err != nil {
-		return errors.Errorf("do request(%s: %s) failed: %w", r.Method, r.URL, err)
+		return errors.Wrapf(err, "do request(%s: %s) failed", r.Method, r.URL)
 	}
 	r.resp = resp
 	r.isRequest = true
