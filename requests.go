@@ -32,7 +32,8 @@ type Request struct {
 	isRequest bool
 
 	// control
-	lock          sync.Mutex
+	reqlock       sync.Mutex
+	readlock      sync.Mutex
 	err           error
 	persistentJar *cookiejar.Jar
 }
@@ -60,7 +61,7 @@ func (r *Request) WithHeaders(kv map[string]string) *Request {
 }
 
 // header
-func (r *Request) ReqHeaders() map[string]string {
+func (r *Request) Headers() map[string]string {
 	return r.headers
 }
 
@@ -139,12 +140,12 @@ func (r *Request) Bytes() ([]byte, error) {
 }
 
 func (r *Request) doRead() error {
-	r.lock.Lock()
-	defer r.lock.Unlock()
-
 	if err := r.doRequest(); err != nil {
 		return err
 	}
+
+	r.readlock.Lock()
+	defer r.readlock.Unlock()
 
 	isRead := r.isRead
 	if isRead {
@@ -163,8 +164,8 @@ func (r *Request) doRead() error {
 }
 
 func (r *Request) doRequest() error {
-	r.lock.Lock()
-	defer r.lock.Unlock()
+	r.reqlock.Lock()
+	defer r.reqlock.Unlock()
 
 	isRequest := r.isRequest
 	if isRequest {
