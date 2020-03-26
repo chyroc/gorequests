@@ -27,7 +27,10 @@ func Example_Request() {
 
 ```go
 func Example_Session() {
-	session := gorequests.NewSession("/tmp/gorequests-session.txt")
+	session, err := gorequests.NewSession("/tmp/gorequests-session.txt")
+    if err != nil {
+        panic(err)
+    }
 	text, err := session.New(http.MethodGet, "https://jsonplaceholder.typicode.com/todos/1").Text()
 	if err != nil {
 		panic(err)

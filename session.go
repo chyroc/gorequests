@@ -1,26 +1,28 @@
 package gorequests
 
 import (
-	"github.com/juju/persistent-cookiejar"
+	cookiejar "github.com/juju/persistent-cookiejar"
 )
 
 type Session struct {
-	*Request
+	jar *cookiejar.Jar
 }
 
 func (r *Session) New(method, url string) *Request {
-	return New(method, url)
+	req := New(method, url)
+	req.persistentJar = r.jar
+	return req
 }
 
-func NewSession(cookiefile string) *Session {
+func NewSession(cookiefile string) (*Session, error) {
 	jar, err := cookiejar.New(&cookiejar.Options{
 		Filename: cookiefile,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	return &Session{
-		Request: &Request{
-			err: err,
-			jar: jar,
-		},
-	}
+		jar: jar,
+	}, nil
 }

@@ -32,9 +32,9 @@ type Request struct {
 	isRequest bool
 
 	// control
-	lock sync.Mutex
-	err  error
-	jar  *cookiejar.Jar
+	lock          sync.Mutex
+	err           error
+	persistentJar *cookiejar.Jar
 }
 
 func New(method, url string) *Request {
@@ -66,10 +66,6 @@ func (r *Request) ReqHeaders() map[string]string {
 
 // header
 func (r *Request) RespHeaders() (map[string]string, error) {
-	if r.err != nil {
-		return nil, r.err
-	}
-
 	if err := r.doRequest(); err != nil {
 		return nil, err
 	}
@@ -135,10 +131,6 @@ func (r *Request) Text() (string, error) {
 }
 
 func (r *Request) Bytes() ([]byte, error) {
-	if r.err != nil {
-		return nil, r.err
-	}
-
 	if err := r.doRead(); err != nil {
 		return nil, err
 	}
@@ -147,16 +139,12 @@ func (r *Request) Bytes() ([]byte, error) {
 }
 
 func (r *Request) doRead() error {
-	if r.err != nil {
-		return r.err
-	}
+	r.lock.Lock()
+	defer r.lock.Unlock()
 
 	if err := r.doRequest(); err != nil {
 		return err
 	}
-
-	r.lock.Lock()
-	defer r.lock.Unlock()
 
 	isRead := r.isRead
 	if isRead {
@@ -168,7 +156,7 @@ func (r *Request) doRead() error {
 	if err != nil {
 		return errors.Wrapf(err, "read request(%s: %s) response failed", r.Method, r.URL)
 	}
-	logrus.Infof("[gorequests] %s: %s, doRead: %s", r.Method, r.URL, r.bytes)
+	logrus.Debugf("[gorequests] %s: %s, doRead: %s", r.Method, r.URL, r.bytes)
 	r.isRead = true
 
 	return nil
@@ -178,21 +166,17 @@ func (r *Request) doRequest() error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	if r.err != nil {
-		return r.err
-	}
-
 	isRequest := r.isRequest
 	if isRequest {
 		return nil
 	}
 
-	logrus.Infof("[gorequests] %s: %s", r.Method, r.URL)
+	logrus.Debugf("[gorequests] %s: %s", r.Method, r.URL)
 
-	if r.jar != nil {
+	if r.persistentJar != nil {
 		defer func() {
-			if err := r.jar.Save(); err != nil {
-				r.err = err
+			if err := r.persistentJar.Save(); err != nil {
+				_ = err // TODO: logs
 			}
 		}()
 	}
@@ -207,8 +191,10 @@ func (r *Request) doRequest() error {
 	}
 
 	c := http.Client{
-		Jar:     r.jar,
 		Timeout: r.Timeout,
+	}
+	if r.persistentJar != nil {
+		c.Jar = r.persistentJar
 	}
 	resp, err := c.Do(req)
 	if err != nil {
