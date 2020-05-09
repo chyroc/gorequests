@@ -205,3 +205,19 @@ func (r *Request) doRequest() error {
 	r.isRequest = true
 	return nil
 }
+
+func (r *Request) Response() (*http.Response, error) {
+	if err := r.doRequest(); err != nil {
+		return nil, err
+	}
+
+	return r.resp, nil
+}
+
+func (r *Request) ResponseStatus() (int, error) {
+	if err := r.doRequest(); err != nil {
+		return 0, err
+	}
+
+	return r.resp.StatusCode, nil
+}
