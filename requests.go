@@ -94,7 +94,8 @@ func (r *Request) WithBody(body interface{}) *Request {
 	default:
 		bs, err := json.Marshal(body)
 		if err != nil {
-			panic(err)
+			r.err = err
+			return r
 		}
 		r.Body = bytes.NewReader(bs)
 	}
