@@ -23,7 +23,9 @@ type Request struct {
 	Body    io.Reader
 
 	// req
-	headers map[string]string
+	headers       map[string]string
+	isNoRedirect  bool
+	persistentJar *cookiejar.Jar
 
 	// resp
 	resp      *http.Response
@@ -32,10 +34,9 @@ type Request struct {
 	isRequest bool
 
 	// control
-	reqlock       sync.Mutex
-	readlock      sync.Mutex
-	err           error
-	persistentJar *cookiejar.Jar
+	reqlock  sync.Mutex
+	readlock sync.Mutex
+	err      error
 }
 
 func New(method, url string) *Request {
@@ -49,6 +50,12 @@ func New(method, url string) *Request {
 // header
 func (r *Request) WithHeader(k, v string) *Request {
 	r.headers[k] = v
+	return r
+}
+
+// 重定向，默认是 true
+func (r *Request) WithRedirect(b bool) *Request {
+	r.isNoRedirect = !b
 	return r
 }
 
@@ -225,12 +232,18 @@ func (r *Request) doRequest() error {
 		req.Header.Set(k, v)
 	}
 
-	c := http.Client{
+	c := &http.Client{
 		Timeout: r.Timeout,
 	}
 	if r.persistentJar != nil {
 		c.Jar = r.persistentJar
 	}
+	if r.isNoRedirect {
+		c.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+	}
+
 	resp, err := c.Do(req)
 	if err != nil {
 		return errors.Wrapf(err, "do request(%s: %s) failed", r.Method, r.URL)
