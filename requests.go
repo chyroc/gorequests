@@ -67,6 +67,10 @@ func (r *Request) Headers() map[string]string {
 
 // header
 func (r *Request) RespHeaders() (map[string]string, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+
 	if err := r.doRequest(); err != nil {
 		return nil, err
 	}
@@ -98,7 +102,16 @@ func (r *Request) WithBody(body interface{}) *Request {
 	return r
 }
 
+func (r *Request) SetError(err error) *Request {
+	r.err = err
+	return r
+}
+
 func (r *Request) Unmarshal(val interface{}) error {
+	if r.err != nil {
+		return r.err
+	}
+
 	bs, err := r.Bytes()
 	if err != nil {
 		return err
@@ -110,6 +123,10 @@ func (r *Request) Unmarshal(val interface{}) error {
 }
 
 func (r *Request) Map() (map[string]interface{}, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+
 	bs, err := r.Bytes()
 	if err != nil {
 		return nil, err
@@ -123,6 +140,10 @@ func (r *Request) Map() (map[string]interface{}, error) {
 }
 
 func (r *Request) Text() (string, error) {
+	if r.err != nil {
+		return "", r.err
+	}
+
 	bs, err := r.Bytes()
 	if err != nil {
 		return "", err
@@ -132,6 +153,10 @@ func (r *Request) Text() (string, error) {
 }
 
 func (r *Request) Bytes() ([]byte, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+
 	if err := r.doRead(); err != nil {
 		return nil, err
 	}
@@ -140,6 +165,10 @@ func (r *Request) Bytes() ([]byte, error) {
 }
 
 func (r *Request) doRead() error {
+	if r.err != nil {
+		return r.err
+	}
+
 	if err := r.doRequest(); err != nil {
 		return err
 	}
@@ -164,6 +193,10 @@ func (r *Request) doRead() error {
 }
 
 func (r *Request) doRequest() error {
+	if r.err != nil {
+		return r.err
+	}
+
 	r.reqlock.Lock()
 	defer r.reqlock.Unlock()
 
@@ -207,6 +240,10 @@ func (r *Request) doRequest() error {
 }
 
 func (r *Request) Response() (*http.Response, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+
 	if err := r.doRequest(); err != nil {
 		return nil, err
 	}
@@ -215,6 +252,10 @@ func (r *Request) Response() (*http.Response, error) {
 }
 
 func (r *Request) ResponseStatus() (int, error) {
+	if r.err != nil {
+		return 0, r.err
+	}
+
 	if err := r.doRequest(); err != nil {
 		return 0, err
 	}
