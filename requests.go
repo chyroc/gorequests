@@ -3,9 +3,11 @@ package gorequests
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"reflect"
 	"strings"
 	"sync"
@@ -18,12 +20,14 @@ import (
 
 type Request struct {
 	Timeout time.Duration
-	URL     string
+	url     string // use Request.URL() to access url
 	Method  string
 	Body    io.Reader
 
 	// req
 	headers       map[string]string
+	querys        map[string][]string
+	cachedurl     string
 	isNoRedirect  bool
 	persistentJar *cookiejar.Jar
 
@@ -34,16 +38,17 @@ type Request struct {
 	isRequest bool
 
 	// control
-	reqlock  sync.Mutex
+	reqlock  sync.RWMutex
 	readlock sync.Mutex
 	err      error
 }
 
 func New(method, url string) *Request {
 	return &Request{
-		URL:     url,
+		url:     url,
 		Method:  method,
 		headers: make(map[string]string),
+		querys:  make(map[string][]string),
 	}
 }
 
@@ -63,6 +68,32 @@ func (r *Request) WithRedirect(b bool) *Request {
 func (r *Request) WithHeaders(kv map[string]string) *Request {
 	for k, v := range kv {
 		r.headers[k] = v
+	}
+	return r
+}
+
+// query
+func (r *Request) WithQuery(k, v string) *Request {
+	r.reqlock.Lock()
+	defer r.reqlock.Unlock()
+	if r.cachedurl != "" {
+		r.err = fmt.Errorf("[gorequests] already send request, cannot add query param")
+		return r
+	}
+	r.querys[k] = append(r.querys[k], v)
+	return r
+}
+
+// querys
+func (r *Request) WithQuerys(kv map[string]string) *Request {
+	r.reqlock.Lock()
+	defer r.reqlock.Unlock()
+	if r.cachedurl != "" {
+		r.err = fmt.Errorf("[gorequests] already send request, cannot add query param")
+		return r
+	}
+	for k, v := range kv {
+		r.querys[k] = append(r.querys[k], v)
 	}
 	return r
 }
@@ -108,6 +139,34 @@ func (r *Request) WithBody(body interface{}) *Request {
 	}
 
 	return r
+}
+
+// request url
+func (r *Request) RequestURL() string {
+	r.reqlock.RLock()
+	defer r.reqlock.RUnlock()
+
+	r.parseURLInLock()
+	return r.cachedurl
+}
+
+// request url
+func (r *Request) parseURLInLock() {
+	if r.cachedurl != "" {
+		return
+	}
+	URL, err := url.Parse(r.url)
+	if err != nil {
+		r.cachedurl = r.url
+		return
+	}
+	q := URL.Query()
+	for k, v := range r.querys {
+		q[k] = append(q[k], v...)
+	}
+	URL.RawQuery = q.Encode()
+	r.cachedurl = URL.String()
+	return
 }
 
 func (r *Request) SetError(err error) *Request {
@@ -192,9 +251,9 @@ func (r *Request) doRead() error {
 	var err error
 	r.bytes, err = ioutil.ReadAll(r.resp.Body)
 	if err != nil {
-		return errors.Wrapf(err, "read request(%s: %s) response failed", r.Method, r.URL)
+		return errors.Wrapf(err, "read request(%s: %s) response failed", r.Method, r.cachedurl)
 	}
-	logrus.Debugf("[gorequests] %s: %s, doRead: %s", r.Method, r.URL, r.bytes)
+	logrus.Debugf("[gorequests] %s: %s, doRead: %s", r.Method, r.cachedurl, r.bytes)
 	r.isRead = true
 
 	return nil
@@ -213,7 +272,9 @@ func (r *Request) doRequest() error {
 		return nil
 	}
 
-	logrus.Debugf("[gorequests] %s: %s", r.Method, r.URL)
+	r.parseURLInLock() // .url -> .cacheurl
+
+	logrus.Debugf("[gorequests] %s: %s", r.Method, r.cachedurl)
 
 	if r.persistentJar != nil {
 		defer func() {
@@ -223,9 +284,9 @@ func (r *Request) doRequest() error {
 		}()
 	}
 
-	req, err := http.NewRequest(r.Method, r.URL, r.Body)
+	req, err := http.NewRequest(r.Method, r.cachedurl, r.Body)
 	if err != nil {
-		return errors.Wrapf(err, "new request(%s: %s) failed", r.Method, r.URL)
+		return errors.Wrapf(err, "new request(%s: %s) failed", r.Method, r.cachedurl)
 	}
 
 	for k, v := range r.headers {
@@ -246,7 +307,7 @@ func (r *Request) doRequest() error {
 
 	resp, err := c.Do(req)
 	if err != nil {
-		return errors.Wrapf(err, "do request(%s: %s) failed", r.Method, r.URL)
+		return errors.Wrapf(err, "do request(%s: %s) failed", r.Method, r.cachedurl)
 	}
 	r.resp = resp
 	r.isRequest = true
