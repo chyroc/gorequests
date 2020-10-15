@@ -2,6 +2,7 @@ package gorequests
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -16,10 +17,11 @@ import (
 
 	cookiejar "github.com/juju/persistent-cookiejar"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type Request struct {
+	Context context.Context
+
 	Timeout time.Duration
 	url     string // use Request.URL() to access url
 	Method  string
@@ -51,6 +53,16 @@ func New(method, url string) *Request {
 		headers: make(map[string]string),
 		querys:  make(map[string][]string),
 	}
+}
+
+// context
+func (r *Request) WithCTX(ctx context.Context) *Request {
+	if r.err != nil {
+		return r
+	}
+
+	r.Context = ctx
+	return r
 }
 
 // header
@@ -299,7 +311,7 @@ func (r *Request) doRead() error {
 	if err != nil {
 		return errors.Wrapf(err, "read request(%s: %s) response failed", r.Method, r.cachedurl)
 	}
-	logrus.Debugf("[gorequests] %s: %s, doRead: %s", r.Method, r.cachedurl, r.bytes)
+	logger.Info(r.ctx(), "[gorequests] %s: %s, doRead: %s", r.Method, r.cachedurl, r.bytes)
 	r.isRead = true
 
 	return nil
@@ -320,7 +332,7 @@ func (r *Request) doRequest() error {
 
 	r.parseURLInLock() // .url -> .cacheurl
 
-	logrus.Debugf("[gorequests] %s: %s", r.Method, r.cachedurl)
+	logger.Info(r.ctx(), "[gorequests] %s: %s", r.Method, r.cachedurl)
 
 	if r.persistentJar != nil {
 		defer func() {
@@ -382,4 +394,11 @@ func (r *Request) ResponseStatus() (int, error) {
 	}
 
 	return r.resp.StatusCode, nil
+}
+
+func (r *Request) ctx() context.Context {
+	if r.Context != nil {
+		return r.Context
+	}
+	return context.Background()
 }
