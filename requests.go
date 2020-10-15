@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -54,18 +55,30 @@ func New(method, url string) *Request {
 
 // header
 func (r *Request) WithHeader(k, v string) *Request {
+	if r.err != nil {
+		return r
+	}
+
 	r.headers[k] = v
 	return r
 }
 
 // 重定向，默认是 true
 func (r *Request) WithRedirect(b bool) *Request {
+	if r.err != nil {
+		return r
+	}
+
 	r.isNoRedirect = !b
 	return r
 }
 
 // header
 func (r *Request) WithHeaders(kv map[string]string) *Request {
+	if r.err != nil {
+		return r
+	}
+
 	for k, v := range kv {
 		r.headers[k] = v
 	}
@@ -74,6 +87,10 @@ func (r *Request) WithHeaders(kv map[string]string) *Request {
 
 // query
 func (r *Request) WithQuery(k, v string) *Request {
+	if r.err != nil {
+		return r
+	}
+
 	r.reqlock.Lock()
 	defer r.reqlock.Unlock()
 	if r.cachedurl != "" {
@@ -86,6 +103,10 @@ func (r *Request) WithQuery(k, v string) *Request {
 
 // querys
 func (r *Request) WithQuerys(kv map[string]string) *Request {
+	if r.err != nil {
+		return r
+	}
+
 	r.reqlock.Lock()
 	defer r.reqlock.Unlock()
 	if r.cachedurl != "" {
@@ -122,6 +143,10 @@ func (r *Request) RespHeaders() (map[string]string, error) {
 
 // body
 func (r *Request) WithBody(body interface{}) *Request {
+	if r.err != nil {
+		return r
+	}
+
 	switch v := body.(type) {
 	case io.Reader:
 		r.Body = v
@@ -137,6 +162,27 @@ func (r *Request) WithBody(body interface{}) *Request {
 		}
 		r.Body = bytes.NewReader(bs)
 	}
+
+	return r
+}
+
+// form data
+func (r *Request) WithForm(body map[string]string) *Request {
+	if r.err != nil {
+		return r
+	}
+
+	buf := bytes.Buffer{}
+	f := multipart.NewWriter(&buf)
+	for k, v := range body {
+		if err := f.WriteField(k, v); err != nil {
+			r.err = err
+			return r
+		}
+	}
+
+	r.Body = strings.NewReader(buf.String())
+	r.WithHeader("Content-Type", f.FormDataContentType())
 
 	return r
 }
