@@ -2,8 +2,9 @@ package gorequests_test
 
 import (
 	"fmt"
-	"github.com/chyroc/gorequests"
 	"net/http"
+
+	"github.com/chyroc/gorequests"
 )
 
 func Example_Request() {
@@ -15,10 +16,7 @@ func Example_Request() {
 }
 
 func Example_Session() {
-	session, err := gorequests.NewSession("/tmp/gorequests-session.txt")
-	if err != nil {
-		panic(err)
-	}
+	session := gorequests.NewSession("/tmp/gorequests-session.txt")
 	text, err := session.New(http.MethodGet, "https://jsonplaceholder.typicode.com/todos/1").Text()
 	if err != nil {
 		panic(err)
