@@ -7,8 +7,9 @@ import (
 )
 
 type Session struct {
-	jar *cookiejar.Jar
-	err error
+	jar        *cookiejar.Jar
+	err        error
+	cookiefile string
 }
 
 func (r *Session) New(method, url string) *Request {
@@ -16,6 +17,10 @@ func (r *Session) New(method, url string) *Request {
 	req.persistentJar = r.jar
 	req.SetError(r.err)
 	return req
+}
+
+func (r *Session) CookieFile() string {
+	return r.cookiefile
 }
 
 var sessionLock sync.Mutex
@@ -45,8 +50,8 @@ func newSession(cookiefile string) *Session {
 		Filename: cookiefile,
 	})
 	if err != nil {
-		return &Session{err: err}
+		return &Session{err: err, cookiefile: cookiefile}
 	} else {
-		return &Session{jar: jar}
+		return &Session{jar: jar, cookiefile: cookiefile}
 	}
 }
