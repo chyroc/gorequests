@@ -137,6 +137,40 @@ func (r *Request) Headers() map[string]string {
 }
 
 // header
+func (r *Request) GetHeaderString(key string) (string, error) {
+	if r.err != nil {
+		return "", r.err
+	}
+
+	if err := r.doRequest(); err != nil {
+		return "", err
+	}
+
+	for k, v := range r.resp.Header {
+		if key == k && len(v) > 0 {
+			return v[0], nil
+		}
+	}
+	return "", nil
+}
+
+func (r *Request) GetHeaderArray(key string) ([]string, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+
+	if err := r.doRequest(); err != nil {
+		return nil, err
+	}
+
+	for k, v := range r.resp.Header {
+		if key == k {
+			return v, nil
+		}
+	}
+	return nil, nil
+}
+
 func (r *Request) RespHeaders() (map[string]string, error) {
 	if r.err != nil {
 		return nil, r.err
