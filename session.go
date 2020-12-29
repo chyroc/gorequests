@@ -1,6 +1,7 @@
 package gorequests
 
 import (
+	"net/http"
 	"sync"
 
 	cookiejar "github.com/juju/persistent-cookiejar"
@@ -17,6 +18,10 @@ func (r *Session) New(method, url string) *Request {
 	req.persistentJar = r.jar
 	req.SetError(r.err)
 	return req
+}
+
+func (r *Session) Jar() http.CookieJar {
+	return r.jar
 }
 
 func (r *Session) CookieFile() string {
