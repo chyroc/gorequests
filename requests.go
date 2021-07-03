@@ -236,6 +236,18 @@ func (r *Request) WithBody(body interface{}) *Request {
 	return r
 }
 
+// body json
+func (r *Request) WithJSON(body interface{}) *Request {
+	if r.err != nil {
+		return r
+	}
+
+	r.WithBody(body)
+	r.headers["Content-Type"] = "application/json"
+
+	return r
+}
+
 // form data
 func (r *Request) WithForm(body map[string]string) *Request {
 	if r.err != nil {
@@ -252,7 +264,33 @@ func (r *Request) WithForm(body map[string]string) *Request {
 	}
 
 	r.Body = strings.NewReader(buf.String())
-	r.WithHeader("Content-Type", f.FormDataContentType())
+	r.headers["Content-Type"] = f.FormDataContentType()
+
+	return r
+}
+
+// cookie
+func (r *Request) WithURLCookie(uri string) *Request {
+	if r.err != nil {
+		return r
+	}
+	if r.persistentJar == nil {
+		return r
+	}
+
+	uriParse, err := url.Parse(uri)
+	if err != nil {
+		r.err = err
+		return r
+	}
+
+	cookies := []string{}
+	for _, v := range r.persistentJar.Cookies(uriParse) {
+		cookies = append(cookies, v.Name+"="+v.Value)
+	}
+	if len(cookies) > 0 {
+		r.headers["cookie"] = strings.Join(cookies, "; ")
+	}
 
 	return r
 }
