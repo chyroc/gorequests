@@ -11,8 +11,7 @@ type Logger interface {
 	Error(ctx context.Context, format string, v ...interface{})
 }
 
-type defaultLogger struct {
-}
+type defaultLogger struct{}
 
 func (r *defaultLogger) Info(ctx context.Context, format string, v ...interface{}) {
 	logrus.Infof(format, v...)

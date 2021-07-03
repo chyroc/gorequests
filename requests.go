@@ -353,7 +353,7 @@ func (r *Request) Map() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	var m = make(map[string]interface{})
+	m := make(map[string]interface{})
 	if err := json.Unmarshal(bs, &m); err != nil {
 		return nil, errors.Wrapf(err, "unmarshal resp(%s) failed", bs)
 	}

@@ -28,8 +28,10 @@ func (r *Session) CookieFile() string {
 	return r.cookiefile
 }
 
-var sessionLock sync.Mutex
-var sessionMap map[string]*Session
+var (
+	sessionLock sync.Mutex
+	sessionMap  map[string]*Session
+)
 
 func init() {
 	sessionMap = map[string]*Session{}
