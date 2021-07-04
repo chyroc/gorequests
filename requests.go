@@ -3,6 +3,7 @@ package gorequests
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -34,6 +35,7 @@ type Request struct {
 	cachedurl     string
 	isNoRedirect  bool
 	persistentJar *cookiejar.Jar
+	isIgnoreSSL   bool
 
 	// resp
 	resp      *http.Response
@@ -63,6 +65,16 @@ func (r *Request) WithCTX(ctx context.Context) *Request {
 	}
 
 	r.Context = ctx
+	return r
+}
+
+// ignore ssl
+func (r *Request) WithIgnoreSSL(ignore bool) *Request {
+	if r.err != nil {
+		return r
+	}
+
+	r.isIgnoreSSL = ignore
 	return r
 }
 
@@ -449,6 +461,11 @@ func (r *Request) doRequest() error {
 
 	c := &http.Client{
 		Timeout: r.Timeout,
+	}
+	if r.isIgnoreSSL {
+		c.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
 	}
 	if r.persistentJar != nil {
 		c.Jar = r.persistentJar
