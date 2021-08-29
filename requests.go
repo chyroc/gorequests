@@ -260,6 +260,23 @@ func (r *Request) WithJSON(body interface{}) *Request {
 	return r
 }
 
+// body file
+func (r *Request) WithFile(filename string, file io.Reader, fileKey string, params map[string]string) *Request {
+	if r.err != nil {
+		return r
+	}
+
+	contentType, bod, err := newFileUploadRequest(params, fileKey, filename, file)
+	if err != nil {
+		r.err = err
+		return r
+	}
+	r.WithBody(bod)
+	r.headers["Content-Type"] = contentType
+
+	return r
+}
+
 // form data
 func (r *Request) WithForm(body map[string]string) *Request {
 	if r.err != nil {
@@ -612,3 +629,28 @@ type s struct {
 }
 
 var queryToMapKeys sync.Map
+
+func newFileUploadRequest(params map[string]string, filekey, filename string, reader io.Reader) (string, io.Reader, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile(filekey, filename)
+	if err != nil {
+		return "", nil, err
+	}
+	if reader != nil {
+		if _, err = io.Copy(part, reader); err != nil {
+			return "", nil, err
+		}
+	}
+	for key, val := range params {
+		if err = writer.WriteField(key, val); err != nil {
+			return "", nil, err
+		}
+	}
+	if err = writer.Close(); err != nil {
+		return "", nil, err
+	}
+
+	// fmt.Println("body",body.String())
+	return writer.FormDataContentType(), body, nil
+}
