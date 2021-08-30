@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/chyroc/gorequests"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -97,6 +96,18 @@ func Test_Real(t *testing.T) {
 		gorequests.New(http.MethodGet, joinHttpBinURL("/image")).Text()
 	})
 
+	t.Run("/post file", func(t *testing.T) {
+		resp := struct {
+			Files struct {
+				File string `json:"file"`
+			} `json:"files"`
+			Form map[string]string `json:"form"`
+		}{}
+		as.Nil(gorequests.New(http.MethodPost, joinHttpBinURL("/post")).WithFile("1.txt", strings.NewReader("hi"), "file", map[string]string{"field1": "val1", "field2": "val2"}).WithTimeout(time.Second * 5).Unmarshal(&resp))
+		as.Equal("hi", resp.Files.File)
+		as.Equal("val1", resp.Form["field1"])
+	})
+
 	// https://github.com/postmanlabs/httpbin/issues/653
 	t.Run("session", func(t *testing.T) {
 		t.Skip()
@@ -115,7 +126,7 @@ func Test_Real(t *testing.T) {
 
 			s := gorequests.NewSession(sessionFile.Name())
 
-			spew.Dump(s.New(http.MethodGet, "http://127.0.0.1:5100/set-cookies?a=b&c=d").MustResponseHeaders())
+			fmt.Println(s.New(http.MethodGet, "http://127.0.0.1:5100/set-cookies?a=b&c=d").MustResponseHeaders())
 
 			resp := map[string]string{}
 			as.Nil(s.New(http.MethodGet, "http://127.0.0.1:5100/get-cookies").Unmarshal(&resp))
