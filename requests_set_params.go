@@ -9,12 +9,20 @@ import (
 	"mime/multipart"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // WithContext setup request context.Context
 func (r *Request) WithContext(ctx context.Context) *Request {
 	return r.configParamFactor(func(r *Request) {
 		r.context = ctx
+	})
+}
+
+// WithContext setup request context.Context
+func (r *Request) WithTimeout(timeout time.Duration) *Request {
+	return r.configParamFactor(func(r *Request) {
+		r.timeout = timeout
 	})
 }
 
@@ -162,8 +170,8 @@ func (r *Request) WithURLCookie(uri string) *Request {
 
 // WithHeader set one header k-v map
 func (r *Request) configParamFactor(f func(*Request)) *Request {
-	r.reqlock.Lock()
-	defer r.reqlock.Unlock()
+	r.lock.Lock()
+	defer r.lock.Unlock()
 
 	if r.isRequest {
 		r.SetError(fmt.Errorf("request %s %s alreday sended, cannot set request params", r.Method, r.cachedurl))

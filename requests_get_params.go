@@ -4,15 +4,8 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"time"
 )
-
-// RequestURL get request request url
-func (r *Request) RequestURL() string {
-	r.reqlock.RLock()
-	defer r.reqlock.RUnlock()
-
-	return r.parseRequestURL()
-}
 
 // Context request context.Context
 func (r *Request) Context() context.Context {
@@ -20,6 +13,19 @@ func (r *Request) Context() context.Context {
 		return r.context
 	}
 	return context.TODO()
+}
+
+// Timeout request timeout
+func (r *Request) Timeout() time.Duration {
+	return r.timeout
+}
+
+// RequestURL get request request url
+func (r *Request) RequestURL() string {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	return r.parseRequestURL()
 }
 
 // RequestHeader request header

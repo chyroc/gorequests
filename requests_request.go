@@ -63,7 +63,7 @@ func (r *Request) doInternalRequest() error {
 
 	// TODO: reuse client
 	c := &http.Client{
-		Timeout: r.Timeout,
+		Timeout: r.timeout,
 	}
 	if r.isIgnoreSSL {
 		c.Transport = &http.Transport{
@@ -92,8 +92,8 @@ func (r *Request) requestFactor(f func() error) error {
 		return r.err
 	}
 
-	r.reqlock.Lock()
-	defer r.reqlock.Unlock()
+	r.lock.Lock()
+	defer r.lock.Unlock()
 
 	return f()
 }

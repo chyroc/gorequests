@@ -12,7 +12,7 @@ import (
 
 type Request struct {
 	// internal params
-	reqlock      sync.RWMutex
+	lock         sync.RWMutex
 	err          error
 	startRequest bool
 
@@ -22,14 +22,13 @@ type Request struct {
 	header       http.Header         // request header
 	querys       map[string][]string // request query
 	isNoRedirect bool                // request ignore redirect
+	timeout      time.Duration       // request timeout
 
-	Timeout time.Duration
-	url     string // use Request.URL() to access url
-	Method  string
-	Body    io.Reader
+	url    string // use Request.URL() to access url
+	Method string
+	Body   io.Reader
 
-	// req
-
+	// internal
 	cachedurl     string
 	persistentJar *cookiejar.Jar
 
@@ -38,9 +37,6 @@ type Request struct {
 	bytes     []byte
 	isRead    bool
 	isRequest bool
-
-	// control
-	readlock sync.Mutex
 }
 
 func New(method, url string) *Request {
