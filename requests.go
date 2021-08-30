@@ -2,6 +2,7 @@ package gorequests
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"sync"
@@ -36,12 +37,14 @@ type Request struct {
 }
 
 func New(method, url string) *Request {
-	return &Request{
+	r := &Request{
 		url:    url,
 		method: method,
 		header: map[string][]string{},
 		querys: make(map[string][]string),
 	}
+	r.header.Set("user-agent", fmt.Sprintf("gorequests/%s (https://github.com/chyroc/gorequests)", version))
+	return r
 }
 
 func (r *Request) SetError(err error) *Request {

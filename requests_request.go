@@ -25,6 +25,7 @@ func (r *Request) doRead() error {
 		if err != nil {
 			return errors.Wrapf(err, "read request(%s: %s) response failed", r.method, r.cachedurl)
 		}
+
 		logger.Info(r.Context(), "[gorequests] %s: %s, doRead: %s", r.method, r.cachedurl, r.bytes)
 		return nil
 	})
