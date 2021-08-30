@@ -1,14 +1,18 @@
 package gorequests_test
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/chyroc/gorequests"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -43,8 +47,10 @@ func Test_Real(t *testing.T) {
 
 	t.Run("/headers", func(t *testing.T) {
 		resp := struct {
-			A string `json:"A"`
-			B string `json:"B"`
+			Headers struct {
+				A string `json:"A"`
+				B string `json:"B"`
+			} `json:"headers"`
 		}{}
 		as.Nil(gorequests.New(http.MethodGet, joinHttpBinURL("/headers")).WithHeader(
 			"a", "1",
@@ -52,8 +58,8 @@ func Test_Real(t *testing.T) {
 			"a": "2",
 			"b": "3",
 		}).Unmarshal(&resp))
-		as.Equal("1,2", resp.A)
-		as.Equal("3", resp.B)
+		as.Equal("1,2", resp.Headers.A)
+		as.Equal("3", resp.Headers.B)
 	})
 
 	t.Run("/get", func(t *testing.T) {
@@ -90,4 +96,66 @@ func Test_Real(t *testing.T) {
 
 		gorequests.New(http.MethodGet, joinHttpBinURL("/image")).Text()
 	})
+
+	// https://github.com/postmanlabs/httpbin/issues/653
+	t.Run("session", func(t *testing.T) {
+		t.Skip()
+
+		go newTestHttpServer()
+		time.Sleep(time.Second * 2)
+
+		file := ""
+		{
+			sessionFile, err := ioutil.TempFile(os.TempDir(), "session-*")
+			as.Nil(err)
+			t.Logf("session file: %s", sessionFile.Name())
+			as.Nil(ioutil.WriteFile(sessionFile.Name(), []byte("[]"), 0o666))
+			file = sessionFile.Name()
+			t.Logf("file: %s", file)
+
+			s := gorequests.NewSession(sessionFile.Name())
+
+			spew.Dump(s.New(http.MethodGet, "http://127.0.0.1:5100/set-cookies?a=b&c=d").MustResponseHeaders())
+
+			resp := map[string]string{}
+			as.Nil(s.New(http.MethodGet, "http://127.0.0.1:5100/get-cookies").Unmarshal(&resp))
+			as.Equal("b", resp["a"])
+		}
+
+		{
+			as.Nil(os.Rename(file, file+".bak"))
+			s := gorequests.NewSession(file + ".bak")
+			resp := map[string]string{}
+			as.Nil(s.New(http.MethodGet, "http://127.0.0.1:5100/get-cookies").Unmarshal(&resp))
+			as.Equal("b", resp["a"])
+		}
+	})
+}
+
+func newTestHttpServer() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/get-cookies", func(writer http.ResponseWriter, request *http.Request) {
+		m := map[string][]string{}
+		for _, v := range request.Cookies() {
+			m[v.Name] = append(m[v.Name], v.Value)
+		}
+		bs, _ := json.Marshal(m)
+		if _, err := writer.Write(bs); err != nil {
+			panic(err)
+		}
+		writer.WriteHeader(200)
+	})
+	mux.HandleFunc("/set-cookies", func(writer http.ResponseWriter, request *http.Request) {
+		for k, v := range request.URL.Query() {
+			for _, vv := range v {
+				writer.Header().Add("cookie", fmt.Sprintf("%s=%s; Path=/; Host=127.0.0.1:5100; Max-Age=99999", k, vv))
+			}
+		}
+
+		writer.WriteHeader(200)
+	})
+	err := http.ListenAndServe("127.0.0.1:5100", mux)
+	if err != nil {
+		panic(err)
+	}
 }

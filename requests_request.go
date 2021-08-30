@@ -50,7 +50,7 @@ func (r *Request) doInternalRequest() error {
 	if r.persistentJar != nil {
 		defer func() {
 			if err := r.persistentJar.Save(); err != nil {
-				_ = err // TODO: logs
+				logger.Error(r.Context(), "save cookie failed: %s", err)
 			}
 		}()
 	}

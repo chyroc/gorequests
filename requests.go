@@ -38,10 +38,11 @@ type Request struct {
 
 func New(method, url string) *Request {
 	r := &Request{
-		url:    url,
-		method: method,
-		header: map[string][]string{},
-		querys: make(map[string][]string),
+		url:     url,
+		method:  method,
+		header:  map[string][]string{},
+		querys:  make(map[string][]string),
+		context: context.TODO(),
 	}
 	r.header.Set("user-agent", fmt.Sprintf("gorequests/%s (https://github.com/chyroc/gorequests)", version))
 	return r
