@@ -114,7 +114,7 @@ func (r *Request) MustResponseHeaders() http.Header {
 	return val
 }
 
-func (r *Request) ResponseHeader(key string) ([]string, error) {
+func (r *Request) ResponseHeadersByKey(key string) ([]string, error) {
 	if err := r.doRequest(); err != nil {
 		return nil, err
 	}
@@ -127,8 +127,30 @@ func (r *Request) ResponseHeader(key string) ([]string, error) {
 	return nil, nil
 }
 
-func (r *Request) MustResponseHeader(key string) []string {
-	val, err := r.ResponseHeader(key)
+func (r *Request) MustResponseHeadersByKey(key string) []string {
+	val, err := r.ResponseHeadersByKey(key)
+	assert(err)
+	return val
+}
+
+func (r *Request) ResponseHeaderByKey(key string) (string, error) {
+	if err := r.doRequest(); err != nil {
+		return "", err
+	}
+
+	for k, v := range r.resp.Header {
+		if key == k {
+			if len(v) > 0 {
+				return v[0], nil
+			}
+			return "", nil
+		}
+	}
+	return "", nil
+}
+
+func (r *Request) MustResponseHeaderByKey(key string) string {
+	val, err := r.ResponseHeaderByKey(key)
 	assert(err)
 	return val
 }
