@@ -91,18 +91,18 @@ func (r *Request) WithBody(body interface{}) *Request {
 	return r.configParamFactor(func(r *Request) {
 		switch v := body.(type) {
 		case io.Reader:
-			r.Body = v
+			r.body = v
 		case []byte:
-			r.Body = bytes.NewReader(v)
+			r.body = bytes.NewReader(v)
 		case string:
-			r.Body = strings.NewReader(v)
+			r.body = strings.NewReader(v)
 		default:
 			bs, err := json.Marshal(body)
 			if err != nil {
 				r.err = err
 				return
 			}
-			r.Body = bytes.NewReader(bs)
+			r.body = bytes.NewReader(bs)
 		}
 	})
 }
@@ -127,7 +127,7 @@ func (r *Request) WithForm(body map[string]string) *Request {
 			}
 		}
 
-		r.Body = strings.NewReader(buf.String())
+		r.body = strings.NewReader(buf.String())
 		r.header.Set("Content-Type", f.FormDataContentType())
 	})
 }
@@ -174,7 +174,7 @@ func (r *Request) configParamFactor(f func(*Request)) *Request {
 	defer r.lock.Unlock()
 
 	if r.isRequest {
-		r.SetError(fmt.Errorf("request %s %s alreday sended, cannot set request params", r.Method, r.cachedurl))
+		r.SetError(fmt.Errorf("request %s %s alreday sended, cannot set request params", r.method, r.cachedurl))
 		return r
 	}
 

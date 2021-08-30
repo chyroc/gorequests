@@ -23,9 +23,9 @@ func (r *Request) doRead() error {
 		var err error
 		r.bytes, err = ioutil.ReadAll(r.resp.Body)
 		if err != nil {
-			return errors.Wrapf(err, "read request(%s: %s) response failed", r.Method, r.cachedurl)
+			return errors.Wrapf(err, "read request(%s: %s) response failed", r.method, r.cachedurl)
 		}
-		logger.Info(r.Context(), "[gorequests] %s: %s, doRead: %s", r.Method, r.cachedurl, r.bytes)
+		logger.Info(r.Context(), "[gorequests] %s: %s, doRead: %s", r.method, r.cachedurl, r.bytes)
 		return nil
 	})
 }
@@ -44,7 +44,7 @@ func (r *Request) doInternalRequest() error {
 	r.cachedurl = r.parseRequestURL()
 	r.isRequest = true
 
-	logger.Info(r.Context(), "[gorequests] %s: %s", r.Method, r.cachedurl)
+	logger.Info(r.Context(), "[gorequests] %s: %s", r.method, r.cachedurl)
 
 	if r.persistentJar != nil {
 		defer func() {
@@ -54,9 +54,9 @@ func (r *Request) doInternalRequest() error {
 		}()
 	}
 
-	req, err := http.NewRequest(r.Method, r.cachedurl, r.Body)
+	req, err := http.NewRequest(r.method, r.cachedurl, r.body)
 	if err != nil {
-		return errors.Wrapf(err, "new request(%s: %s) failed", r.Method, r.cachedurl)
+		return errors.Wrapf(err, "new request(%s: %s) failed", r.method, r.cachedurl)
 	}
 
 	req.Header = r.header
@@ -81,7 +81,7 @@ func (r *Request) doInternalRequest() error {
 
 	resp, err := c.Do(req)
 	if err != nil {
-		return errors.Wrapf(err, "do request(%s: %s) failed", r.Method, r.cachedurl)
+		return errors.Wrapf(err, "do request(%s: %s) failed", r.method, r.cachedurl)
 	}
 	r.resp = resp
 	return nil

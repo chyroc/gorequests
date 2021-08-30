@@ -11,26 +11,22 @@ import (
 )
 
 type Request struct {
-	// internal params
-	lock         sync.RWMutex
-	err          error
-	startRequest bool
+	// internal
+	cachedurl     string
+	persistentJar *cookiejar.Jar
+	lock          sync.RWMutex
+	err           error
 
-	// request params
+	// request
 	context      context.Context     // request context
 	isIgnoreSSL  bool                // request  ignore ssl verify
 	header       http.Header         // request header
 	querys       map[string][]string // request query
 	isNoRedirect bool                // request ignore redirect
 	timeout      time.Duration       // request timeout
-
-	url    string // use Request.URL() to access url
-	Method string
-	Body   io.Reader
-
-	// internal
-	cachedurl     string
-	persistentJar *cookiejar.Jar
+	url          string              // request url
+	method       string              // request method
+	body         io.Reader           // request body
 
 	// resp
 	resp      *http.Response
@@ -42,7 +38,7 @@ type Request struct {
 func New(method, url string) *Request {
 	return &Request{
 		url:    url,
-		Method: method,
+		method: method,
 		header: map[string][]string{},
 		querys: make(map[string][]string),
 	}

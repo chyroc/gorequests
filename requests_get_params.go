@@ -20,12 +20,22 @@ func (r *Request) Timeout() time.Duration {
 	return r.timeout
 }
 
-// RequestURL get request request url
-func (r *Request) RequestURL() string {
+// URL request url
+func (r *Request) URL() string {
+	return r.url
+}
+
+// RequestFullURL request full url, contain query param
+func (r *Request) RequestFullURL() string {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 
 	return r.parseRequestURL()
+}
+
+// Method request method
+func (r *Request) Method() string {
+	return r.method
 }
 
 // RequestHeader request header
