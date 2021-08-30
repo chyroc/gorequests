@@ -103,7 +103,7 @@ func Test_Real(t *testing.T) {
 			} `json:"files"`
 			Form map[string]string `json:"form"`
 		}{}
-		as.Nil(gorequests.New(http.MethodPost, joinHttpBinURL("/post")).WithFile("1.txt", strings.NewReader("hi"), "file", map[string]string{"field1": "val1", "field2": "val2"}).WithTimeout(time.Second * 5).Unmarshal(&resp))
+		as.Nil(gorequests.New(http.MethodPost, joinHttpBinURL("/post")).WithFile("1.txt", strings.NewReader("hi"), "file", map[string]string{"field1": "val1", "field2": "val2"}).WithTimeout(time.Second * 3).Unmarshal(&resp))
 		as.Equal("hi", resp.Files.File)
 		as.Equal("val1", resp.Form["field1"])
 	})

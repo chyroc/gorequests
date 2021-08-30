@@ -3,14 +3,54 @@ package gorequests
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
 )
+
+// ----- get params
+
+// Context request context.Context
+func (r *Request) Context() context.Context {
+	if r.context != nil {
+		return r.context
+	}
+	return context.TODO()
+}
+
+// Timeout request timeout
+func (r *Request) Timeout() time.Duration {
+	return r.timeout
+}
+
+// URL request url
+func (r *Request) URL() string {
+	return r.url
+}
+
+// RequestFullURL request full url, contain query param
+func (r *Request) RequestFullURL() string {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	return r.parseRequestURL()
+}
+
+// Method request method
+func (r *Request) Method() string {
+	return r.method
+}
+
+// RequestHeader request header
+func (r *Request) RequestHeader() http.Header {
+	return r.header
+}
+
+// ----- set params
 
 // WithContext setup request context.Context
 func (r *Request) WithContext(ctx context.Context) *Request {
@@ -19,7 +59,7 @@ func (r *Request) WithContext(ctx context.Context) *Request {
 	})
 }
 
-// WithContext setup request context.Context
+// WithTimeout setup request timeout
 func (r *Request) WithTimeout(timeout time.Duration) *Request {
 	return r.configParamFactor(func(r *Request) {
 		r.timeout = timeout
@@ -89,21 +129,7 @@ func (r *Request) WithQueryStruct(v interface{}) *Request {
 // WithBody set request body, support: io.Reader, []byte, string, interface{}(as json format)
 func (r *Request) WithBody(body interface{}) *Request {
 	return r.configParamFactor(func(r *Request) {
-		switch v := body.(type) {
-		case io.Reader:
-			r.body = v
-		case []byte:
-			r.body = bytes.NewReader(v)
-		case string:
-			r.body = strings.NewReader(v)
-		default:
-			bs, err := json.Marshal(body)
-			if err != nil {
-				r.err = err
-				return
-			}
-			r.body = bytes.NewReader(bs)
-		}
+		r.body, r.err = toBody(body)
 	})
 }
 
@@ -140,7 +166,7 @@ func (r *Request) WithFile(filename string, file io.Reader, fileKey string, para
 			r.err = err
 			return
 		}
-		r.WithBody(bod)
+		r.body = bod
 		r.header.Set("Content-Type", contentType)
 	})
 }

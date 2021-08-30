@@ -2,11 +2,14 @@ package gorequests
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/url"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -122,6 +125,37 @@ func getQueryToMapKeys(v interface{}) ([]s, error) {
 	queryToMapKeys.Store(origin, ss)
 
 	return ss, nil
+}
+
+// request url
+func (r *Request) parseRequestURL() string {
+	URL, err := url.Parse(r.url)
+	if err != nil {
+		return r.url
+	}
+	q := URL.Query()
+	for k, v := range r.querys {
+		q[k] = append(q[k], v...)
+	}
+	URL.RawQuery = q.Encode()
+	return URL.String()
+}
+
+func toBody(body interface{}) (io.Reader, error) {
+	switch v := body.(type) {
+	case io.Reader:
+		return v, nil
+	case []byte:
+		return bytes.NewReader(v), nil
+	case string:
+		return strings.NewReader(v), nil
+	default:
+		bs, err := json.Marshal(body)
+		if err != nil {
+			return nil, err
+		}
+		return bytes.NewReader(bs), nil
+	}
 }
 
 type s struct {

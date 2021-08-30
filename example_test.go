@@ -8,7 +8,7 @@ import (
 )
 
 func Example_new() {
-	text, err := gorequests.New(http.MethodGet, "https://jsonplaceholder.typicode.com/todos/1").Text()
+	text, err := gorequests.New(http.MethodGet, "https://httpbin.org/get").Text()
 	if err != nil {
 		panic(err)
 	}
