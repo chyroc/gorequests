@@ -2,10 +2,9 @@ package gorequests
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"reflect"
-
-	"github.com/pkg/errors"
 )
 
 func (r *Request) Unmarshal(val interface{}) error {
@@ -14,7 +13,7 @@ func (r *Request) Unmarshal(val interface{}) error {
 		return err
 	}
 	if err := json.Unmarshal(bs, val); err != nil {
-		return errors.Errorf("unmarshal %s to %s failed: %s", bs, reflect.TypeOf(val).Name(), err)
+		return fmt.Errorf("[gorequest] %s %s unmarshal %s to %s failed: %w", r.method, r.cachedurl, bs, reflect.TypeOf(val).Name(), err)
 	}
 	return nil
 }
@@ -32,7 +31,7 @@ func (r *Request) Map() (map[string]interface{}, error) {
 
 	m := make(map[string]interface{})
 	if err := json.Unmarshal(bs, &m); err != nil {
-		return nil, errors.Wrapf(err, "unmarshal resp(%s) failed", bs)
+		return nil, fmt.Errorf("[gorequest] %s %s unmarshal %s to map failed: %w", r.method, r.cachedurl, bs, err)
 	}
 	return m, nil
 }

@@ -4,7 +4,6 @@ go 1.17
 
 require (
 	github.com/juju/persistent-cookiejar v0.0.0-20171026135701-d5e5a8405ef9
-	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
 )
 
