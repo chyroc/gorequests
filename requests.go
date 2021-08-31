@@ -17,6 +17,7 @@ type Request struct {
 	persistentJar *cookiejar.Jar
 	lock          sync.RWMutex
 	err           error
+	logger        Logger
 
 	// request
 	context      context.Context     // request context
@@ -43,6 +44,7 @@ func New(method, url string) *Request {
 		header:  map[string][]string{},
 		querys:  make(map[string][]string),
 		context: context.TODO(),
+		logger: newDefaultLogger(),
 	}
 	r.header.Set("user-agent", fmt.Sprintf("gorequests/%s (https://github.com/chyroc/gorequests)", version))
 	return r

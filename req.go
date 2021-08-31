@@ -194,6 +194,13 @@ func (r *Request) WithURLCookie(uri string) *Request {
 	})
 }
 
+// WithLogger set logger
+func (r *Request) WithLogger(logger Logger) *Request {
+	return r.configParamFactor(func(r *Request) {
+		r.logger = logger
+	})
+}
+
 // WithHeader set one header k-v map
 func (r *Request) configParamFactor(f func(*Request)) *Request {
 	r.lock.Lock()

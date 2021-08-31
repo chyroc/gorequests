@@ -2,8 +2,8 @@ package gorequests
 
 import (
 	"context"
-
-	"github.com/sirupsen/logrus"
+	"log"
+	"os"
 )
 
 type Logger interface {
@@ -11,18 +11,20 @@ type Logger interface {
 	Error(ctx context.Context, format string, v ...interface{})
 }
 
-type defaultLogger struct{}
+type defaultLogger struct {
+	logger *log.Logger
+}
 
 func (r *defaultLogger) Info(ctx context.Context, format string, v ...interface{}) {
-	logrus.Infof(format, v...)
+	r.logger.Printf(format, v...)
 }
 
 func (r *defaultLogger) Error(ctx context.Context, format string, v ...interface{}) {
-	logrus.Errorf(format, v...)
+	r.logger.Printf(format, v...)
 }
 
-var logger Logger = &defaultLogger{}
-
-func SetLogger(l Logger) {
-	logger = l
+func newDefaultLogger() Logger {
+	return &defaultLogger{
+		logger: log.New(os.Stdout, "[gorequests] ", log.LstdFlags),
+	}
 }

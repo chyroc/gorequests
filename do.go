@@ -26,7 +26,7 @@ func (r *Request) doRead() error {
 			return errors.Wrapf(err, "read request(%s: %s) response failed", r.method, r.cachedurl)
 		}
 
-		logger.Info(r.Context(), "[gorequests] %s: %s, doRead: %s", r.method, r.cachedurl, r.bytes)
+		r.logger.Info(r.Context(), "[gorequests] %s: %s, doRead: %s", r.method, r.cachedurl, r.bytes)
 		return nil
 	})
 }
@@ -45,12 +45,12 @@ func (r *Request) doInternalRequest() error {
 	r.cachedurl = r.parseRequestURL()
 	r.isRequest = true
 
-	logger.Info(r.Context(), "[gorequests] %s: %s", r.method, r.cachedurl)
+	r.logger.Info(r.Context(), "[gorequests] %s: %s", r.method, r.cachedurl)
 
 	if r.persistentJar != nil {
 		defer func() {
 			if err := r.persistentJar.Save(); err != nil {
-				logger.Error(r.Context(), "save cookie failed: %s", err)
+				r.logger.Error(r.Context(), "save cookie failed: %s", err)
 			}
 		}()
 	}
