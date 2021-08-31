@@ -44,7 +44,7 @@ func New(method, url string) *Request {
 		header:  map[string][]string{},
 		querys:  make(map[string][]string),
 		context: context.TODO(),
-		logger: newDefaultLogger(),
+		logger:  newDefaultLogger(),
 	}
 	r.header.Set("user-agent", fmt.Sprintf("gorequests/%s (https://github.com/chyroc/gorequests)", version))
 	return r

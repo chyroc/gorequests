@@ -19,8 +19,7 @@ func (r *Request) Unmarshal(val interface{}) error {
 }
 
 func (r *Request) MustUnmarshal(val interface{}) {
-	err := r.Unmarshal(val)
-	assert(err)
+	_ = r.Unmarshal(val)
 }
 
 func (r *Request) Map() (map[string]interface{}, error) {
@@ -37,8 +36,7 @@ func (r *Request) Map() (map[string]interface{}, error) {
 }
 
 func (r *Request) MustMap() map[string]interface{} {
-	val, err := r.Map()
-	assert(err)
+	val, _ := r.Map()
 	return val
 }
 
@@ -52,8 +50,7 @@ func (r *Request) Text() (string, error) {
 }
 
 func (r *Request) MustText() string {
-	val, err := r.Text()
-	assert(err)
+	val, _ := r.Text()
 	return val
 }
 
@@ -66,8 +63,7 @@ func (r *Request) Bytes() ([]byte, error) {
 }
 
 func (r *Request) MustBytes() []byte {
-	val, err := r.Bytes()
-	assert(err)
+	val, _ := r.Bytes()
 	return val
 }
 
@@ -80,8 +76,7 @@ func (r *Request) Response() (*http.Response, error) {
 }
 
 func (r *Request) MustResponse() *http.Response {
-	val, err := r.Response()
-	assert(err)
+	val, _ := r.Response()
 	return val
 }
 
@@ -94,8 +89,7 @@ func (r *Request) ResponseStatus() (int, error) {
 }
 
 func (r *Request) MustResponseStatus() int {
-	val, err := r.ResponseStatus()
-	assert(err)
+	val, _ := r.ResponseStatus()
 	return val
 }
 
@@ -108,8 +102,7 @@ func (r *Request) ResponseHeaders() (http.Header, error) {
 }
 
 func (r *Request) MustResponseHeaders() http.Header {
-	val, err := r.ResponseHeaders()
-	assert(err)
+	val, _ := r.ResponseHeaders()
 	return val
 }
 
@@ -127,8 +120,7 @@ func (r *Request) ResponseHeadersByKey(key string) ([]string, error) {
 }
 
 func (r *Request) MustResponseHeadersByKey(key string) []string {
-	val, err := r.ResponseHeadersByKey(key)
-	assert(err)
+	val, _ := r.ResponseHeadersByKey(key)
 	return val
 }
 
@@ -149,13 +141,6 @@ func (r *Request) ResponseHeaderByKey(key string) (string, error) {
 }
 
 func (r *Request) MustResponseHeaderByKey(key string) string {
-	val, err := r.ResponseHeaderByKey(key)
-	assert(err)
+	val, _ := r.ResponseHeaderByKey(key)
 	return val
-}
-
-func assert(err error) {
-	if err != nil {
-		panic(err)
-	}
 }
