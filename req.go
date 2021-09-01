@@ -136,7 +136,10 @@ func (r *Request) WithBody(body interface{}) *Request {
 // WithJSON set body same as WithBody, and set Content-Type to application/json
 func (r *Request) WithJSON(body interface{}) *Request {
 	return r.configParamFactor(func(r *Request) {
-		r.WithBody(body)
+		r.body, r.err = toBody(body)
+		if r.err != nil {
+			return
+		}
 		r.header.Set("Content-Type", "application/json")
 	})
 }
