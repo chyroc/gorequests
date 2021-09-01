@@ -2,11 +2,11 @@ set -ex
 
 cur_tag=`git describe --tags --abbrev=0`
 
-last_ver=`echo $cur_tag | cut -d '.' -f 3-3`
+last_ver=`echo $cur_tag | cut -d '.' -f 2-2`
 
 new_ver=$((last_ver+1))
 
-new_tag="v0.0.$new_ver"
+new_tag="v0.$new_ver.0"
 
 cat <<EOT > version.go
 package gorequests
