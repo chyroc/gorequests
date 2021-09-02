@@ -55,6 +55,9 @@ func (r *Request) MustText() string {
 }
 
 func (r *Request) Bytes() ([]byte, error) {
+	if err := r.doRequest(); err != nil {
+		return nil, err
+	}
 	if err := r.doRead(); err != nil {
 		return nil, err
 	}

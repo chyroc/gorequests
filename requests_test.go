@@ -108,6 +108,12 @@ func Test_Real(t *testing.T) {
 		as.Equal("val1", resp.Form["field1"])
 	})
 
+	t.Run("fail", func(t *testing.T) {
+		text, err := gorequests.New(http.MethodGet, "").WithTimeout(time.Second).Text()
+		as.Equal("", text)
+		as.NotNil(err)
+	})
+
 	// https://github.com/postmanlabs/httpbin/issues/653
 	t.Run("session", func(t *testing.T) {
 		t.Skip()

@@ -11,6 +11,7 @@ import (
 func (r *Request) doRead() error {
 	return r.requestFactor(func() error {
 		if err := r.doInternalRequest(); err != nil {
+			r.err = err
 			return err
 		}
 
@@ -20,6 +21,7 @@ func (r *Request) doRead() error {
 		r.isRead = true
 
 		var err error
+		fmt.Println("r.resp is nil", r.resp == nil)
 		r.bytes, err = ioutil.ReadAll(r.resp.Body)
 		if err != nil {
 			return fmt.Errorf("[gorequest] %s %s read response failed: %w", r.method, r.cachedurl, err)
@@ -42,7 +44,6 @@ func (r *Request) doInternalRequest() error {
 	}
 
 	r.cachedurl = r.parseRequestURL()
-	r.isRequest = true
 
 	r.logger.Info(r.Context(), "[gorequests] %s: %s", r.method, r.cachedurl)
 
@@ -79,6 +80,7 @@ func (r *Request) doInternalRequest() error {
 		}
 	}
 
+	r.isRequest = true
 	resp, err := c.Do(req)
 	if err != nil {
 		return fmt.Errorf("[gorequest] %s %s send request failed: %w", r.method, r.cachedurl, err)
@@ -95,5 +97,6 @@ func (r *Request) requestFactor(f func() error) error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	return f()
+	r.err = f()
+	return r.err
 }
