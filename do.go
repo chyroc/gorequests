@@ -7,34 +7,9 @@ import (
 	"net/http"
 )
 
-// doRead send request and read response
-func (r *Request) doRead() error {
-	return r.requestFactor(func() error {
-		if err := r.doInternalRequest(); err != nil {
-			r.err = err
-			return err
-		}
-
-		if r.isRead {
-			return nil
-		}
-		r.isRead = true
-
-		var err error
-		fmt.Println("r.resp is nil", r.resp == nil)
-		r.bytes, err = ioutil.ReadAll(r.resp.Body)
-		if err != nil {
-			return fmt.Errorf("[gorequest] %s %s read response failed: %w", r.method, r.cachedurl, err)
-		}
-
-		r.logger.Info(r.Context(), "[gorequests] %s: %s, doRead: %s", r.method, r.cachedurl, r.bytes)
-		return nil
-	})
-}
-
 // doRequest send request
 func (r *Request) doRequest() error {
-	return r.requestFactor(r.doInternalRequest)
+	return r.doRequestFactor(r.doInternalRequest)
 }
 
 // doRequest send request
@@ -80,16 +55,39 @@ func (r *Request) doInternalRequest() error {
 		}
 	}
 
-	r.isRequest = true
 	resp, err := c.Do(req)
+	r.resp = resp
+	r.isRequest = true
 	if err != nil {
 		return fmt.Errorf("[gorequest] %s %s send request failed: %w", r.method, r.cachedurl, err)
 	}
-	r.resp = resp
 	return nil
 }
 
-func (r *Request) requestFactor(f func() error) error {
+// doRead send request and read response
+func (r *Request) doRead() error {
+	return r.doRequestFactor(func() error {
+		if err := r.doInternalRequest(); err != nil {
+			return err
+		}
+
+		if r.isRead {
+			return nil
+		}
+
+		var err error
+		r.bytes, err = ioutil.ReadAll(r.resp.Body)
+		r.isRead = true
+		if err != nil {
+			return fmt.Errorf("[gorequest] %s %s read response failed: %w", r.method, r.cachedurl, err)
+		}
+
+		r.logger.Info(r.Context(), "[gorequests] %s: %s, doRead: %s", r.method, r.cachedurl, r.bytes)
+		return nil
+	})
+}
+
+func (r *Request) doRequestFactor(f func() error) error {
 	if r.err != nil {
 		return r.err
 	}
