@@ -161,6 +161,19 @@ func (r *Request) WithForm(body map[string]string) *Request {
 	})
 }
 
+// WithFormURLEncoded set body and set Content-Type to application/x-www-form-urlencoded
+func (r *Request) WithFormURLEncoded(body map[string]string) *Request {
+	return r.configParamFactor(func(r *Request) {
+		u := url.Values{}
+		for k, v := range body {
+			u.Add(k, v)
+		}
+
+		r.body = strings.NewReader(u.Encode())
+		r.header.Set("Content-Type", "application/x-www-form-urlencoded")
+	})
+}
+
 // WithFile set file to body and set some multi-form k-v map
 func (r *Request) WithFile(filename string, file io.Reader, fileKey string, params map[string]string) *Request {
 	return r.configParamFactor(func(r *Request) {
