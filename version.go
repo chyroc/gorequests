@@ -1,3 +1,3 @@
 package gorequests
 
-const version = "v0.24.0"
+const version = "v0.25.0"
