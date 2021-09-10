@@ -20,7 +20,7 @@ func (r *Request) doInternalRequest() error {
 
 	r.cachedurl = r.parseRequestURL()
 
-	r.logger.Info(r.Context(), "[gorequests] %s: %s", r.method, r.cachedurl)
+	r.logger.Info(r.Context(), "[gorequests] %s: %s, body=%s, header=%+v", r.method, r.cachedurl, r.rawBody, r.header)
 
 	if r.persistentJar != nil {
 		defer func() {

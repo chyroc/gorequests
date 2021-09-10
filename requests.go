@@ -28,6 +28,7 @@ type Request struct {
 	timeout      time.Duration       // request timeout
 	url          string              // request url
 	method       string              // request method
+	rawBody      []byte              // []byte of body
 	body         io.Reader           // request body
 
 	// resp

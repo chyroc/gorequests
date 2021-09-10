@@ -141,20 +141,20 @@ func (r *Request) parseRequestURL() string {
 	return URL.String()
 }
 
-func toBody(body interface{}) (io.Reader, error) {
+func toBody(body interface{}) ([]byte, io.Reader, error) {
 	switch v := body.(type) {
 	case io.Reader:
-		return v, nil
+		return nil, v, nil
 	case []byte:
-		return bytes.NewReader(v), nil
+		return v, bytes.NewReader(v), nil
 	case string:
-		return strings.NewReader(v), nil
+		return []byte(v), strings.NewReader(v), nil
 	default:
 		bs, err := json.Marshal(body)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return bytes.NewReader(bs), nil
+		return bs, bytes.NewReader(bs), nil
 	}
 }
 

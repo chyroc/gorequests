@@ -76,7 +76,7 @@ func (r *Request) WithIgnoreSSL(ignore bool) *Request {
 // WithHeader set one header k-v map
 func (r *Request) WithHeader(k, v string) *Request {
 	return r.configParamFactor(func(r *Request) {
-		r.header.Add(k, v)
+		r.configHeader(k, v)
 	})
 }
 
@@ -84,9 +84,18 @@ func (r *Request) WithHeader(k, v string) *Request {
 func (r *Request) WithHeaders(kv map[string]string) *Request {
 	return r.configParamFactor(func(r *Request) {
 		for k, v := range kv {
-			r.header.Add(k, v)
+			r.configHeader(k, v)
 		}
 	})
+}
+
+// WithHeaders set multi header k-v map
+func (r *Request) configHeader(k, v string) {
+	if strings.ToLower(k) == "user-agent" {
+		r.header.Set(k, v)
+	} else {
+		r.header.Add(k, v)
+	}
 }
 
 // WithRedirect set allow or not-allow redirect with Location header
@@ -129,14 +138,14 @@ func (r *Request) WithQueryStruct(v interface{}) *Request {
 // WithBody set request body, support: io.Reader, []byte, string, interface{}(as json format)
 func (r *Request) WithBody(body interface{}) *Request {
 	return r.configParamFactor(func(r *Request) {
-		r.body, r.err = toBody(body)
+		r.rawBody, r.body, r.err = toBody(body)
 	})
 }
 
 // WithJSON set body same as WithBody, and set Content-Type to application/json
 func (r *Request) WithJSON(body interface{}) *Request {
 	return r.configParamFactor(func(r *Request) {
-		r.body, r.err = toBody(body)
+		r.rawBody, r.body, r.err = toBody(body)
 		if r.err != nil {
 			return
 		}
@@ -156,7 +165,7 @@ func (r *Request) WithForm(body map[string]string) *Request {
 			}
 		}
 
-		r.body = strings.NewReader(buf.String())
+		r.rawBody, r.body = buf.Bytes(), strings.NewReader(buf.String())
 		r.header.Set("Content-Type", f.FormDataContentType())
 	})
 }
@@ -169,7 +178,7 @@ func (r *Request) WithFormURLEncoded(body map[string]string) *Request {
 			u.Add(k, v)
 		}
 
-		r.body = strings.NewReader(u.Encode())
+		r.rawBody, r.body = []byte(u.Encode()), strings.NewReader(u.Encode())
 		r.header.Set("Content-Type", "application/x-www-form-urlencoded")
 	})
 }
@@ -182,7 +191,7 @@ func (r *Request) WithFile(filename string, file io.Reader, fileKey string, para
 			r.err = err
 			return
 		}
-		r.body = bod
+		r.rawBody, r.body = nil, bod
 		r.header.Set("Content-Type", contentType)
 	})
 }
