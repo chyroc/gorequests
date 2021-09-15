@@ -1,20 +1,26 @@
 # gorequests
 
-> 简单易用的带有 session 功能的 go http 客户端
+[![codecov](https://codecov.io/gh/chyroc/gorequests/branch/master/graph/badge.svg?token=Z73T6YFF80)](https://codecov.io/gh/chyroc/gorequests)
+[![go report card](https://goreportcard.com/badge/github.com/chyroc/gorequests "go report card")](https://goreportcard.com/report/github.com/chyroc/gorequests)
+[![test status](https://github.com/chyroc/gorequests/actions/workflows/test.yml/badge.svg)](https://github.com/chyroc/gorequests/actions)
+[![Apache-2.0 license](https://img.shields.io/badge/License-Apache%202.0-brightgreen.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Go.Dev reference](https://img.shields.io/badge/go.dev-reference-blue?logo=go&logoColor=white)](https://pkg.go.dev/github.com/chyroc/gorequests)
+[![Go project version](https://badge.fury.io/go/github.com%2Fchyroc%2Fgorequests.svg)](https://badge.fury.io/go/github.com%2Fchyroc%2Fgorequests)
 
-## 支持功能
+> Simple and easy-to-use go http client, supports cookies, streaming calls, custom logs and other functions
 
-- 设置 header
-- 设置 body
-- 获取返回 text、bytes、map、interface
+## Install
 
+```shell
+go get github.com/chyroc/gorequests
+```
 
-## 入手指南
+## Usage
 
-### 简单使用
+### Simple Send Request
 
 ```go
-func Example_Request() {
+func main() {
 	text, err := gorequests.New(http.MethodGet, "https://jsonplaceholder.typicode.com/todos/1").Text()
 	if err != nil {
 		panic(err)
@@ -23,12 +29,27 @@ func Example_Request() {
 }
 ```
 
-### 带 session 的请求
+### Send Request With Cookie
 
 ```go
-func Example_Session() {
+func main() {
 	session := gorequests.NewSession("/tmp/gorequests-session.txt")
 	text, err := session.New(http.MethodGet, "https://jsonplaceholder.typicode.com/todos/1").Text()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("text", text)
+}
+```
+
+### Request Factory
+
+```go
+func main() {
+    fac := gorequests.NewFactory(
+        gorequests.WithLogger(gorequests.NewDiscardLogger()),
+    )
+	text, err := fac.New(http.MethodGet, "https://jsonplaceholder.typicode.com/todos/1").Text()
 	if err != nil {
 		panic(err)
 	}

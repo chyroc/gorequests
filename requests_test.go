@@ -149,6 +149,39 @@ func Test_Real(t *testing.T) {
 	})
 }
 
+func Test_Factory(t *testing.T) {
+	as := assert.New(t)
+
+	t.Run("", func(t *testing.T) {
+		fac := gorequests.NewFactory(gorequests.WithTimeout(time.Second * 10))
+		resp := struct {
+			Origin string `json:"origin"`
+		}{}
+		err := fac.New(http.MethodGet, joinHttpBinURL("/ip")).Unmarshal(&resp)
+		as.Nil(err)
+		as.NotEmpty(resp.Origin)
+	})
+
+	t.Run("", func(t *testing.T) {
+		fac := gorequests.NewFactory(gorequests.WithTimeout(time.Second*10), func(req *gorequests.Request) error {
+			req.SetError(fmt.Errorf("must fail"))
+			return nil
+		})
+		_, err := fac.New(http.MethodGet, joinHttpBinURL("/ip")).Text()
+		as.NotNil(err)
+		as.Equal("must fail", err.Error())
+	})
+
+	t.Run("", func(t *testing.T) {
+		fac := gorequests.NewFactory(gorequests.WithTimeout(time.Second*10), func(req *gorequests.Request) error {
+			return fmt.Errorf("must fail")
+		})
+		_, err := fac.New(http.MethodGet, joinHttpBinURL("/ip")).Text()
+		as.NotNil(err)
+		as.Equal("must fail", err.Error())
+	})
+}
+
 func newTestHttpServer() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/get-cookies", func(writer http.ResponseWriter, request *http.Request) {
