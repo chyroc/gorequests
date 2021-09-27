@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	cookiejar "github.com/juju/persistent-cookiejar"
+	cookiejar "github.com/chyroc/persistent-cookiejar"
 )
 
 type Request struct {
@@ -45,7 +45,7 @@ func New(method, url string) *Request {
 		header:  map[string][]string{},
 		querys:  make(map[string][]string),
 		context: context.TODO(),
-		logger:  NewStdoutLogger(),
+		logger:  newDiscardLogger(),
 	}
 	r.header.Set("user-agent", fmt.Sprintf("gorequests/%s (https://github.com/chyroc/gorequests)", version))
 	return r

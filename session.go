@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"sync"
 
-	cookiejar "github.com/juju/persistent-cookiejar"
+	cookiejar "github.com/chyroc/persistent-cookiejar"
 )
 
 type Session struct {
@@ -54,7 +54,8 @@ func NewSession(cookiefile string) *Session {
 
 func newSession(cookiefile string) *Session {
 	jar, err := cookiejar.New(&cookiejar.Options{
-		Filename: cookiefile,
+		Filename:   cookiefile,
+		Persistent: true,
 	})
 	if err != nil {
 		return &Session{err: err, cookiefile: cookiefile}
