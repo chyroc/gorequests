@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"sync"
 )
 
 // doRequest send request
@@ -98,28 +97,4 @@ func (r *Request) doRequestFactor(f func() error) error {
 
 	r.err = f()
 	return r.err
-}
-
-type impl struct {
-	lock sync.Mutex
-}
-
-func (r *impl) Do() {
-	r.lock.Lock()
-	defer r.lock.Unlock()
-
-	r.doWithLockStatus()
-}
-
-func (r *impl) doWithLockStatus() {
-
-}
-
-func (r *impl) doOtherSth() {
-	r.lock.Lock()
-	defer r.lock.Unlock()
-
-	r.doWithLockStatus()
-
-	// do sth
 }
