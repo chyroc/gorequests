@@ -19,3 +19,17 @@ func WithTimeout(timeout time.Duration) RequestOption {
 		return nil
 	}
 }
+
+func WithHeader(key, val string) RequestOption {
+	return func(req *Request) error {
+		req.WithHeader(key, val)
+		return nil
+	}
+}
+
+func WithQuery(key, val string) RequestOption {
+	return func(req *Request) error {
+		req.WithQuery(key, val)
+		return nil
+	}
+}
