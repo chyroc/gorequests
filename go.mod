@@ -1,4 +1,4 @@
-module github.com/chyroc/gorequests
+module github.com/cairc/gorequests
 
 go 1.17
 

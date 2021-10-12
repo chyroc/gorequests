@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chyroc/gorequests"
+	"github.com/cairc/gorequests"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,7 +40,7 @@ func Test_Real(t *testing.T) {
 		}{}
 		err := gorequests.New(http.MethodGet, joinHttpBinURL("/user-agent")).Unmarshal(&resp)
 		as.Nil(err)
-		as.True(regexp.MustCompile(`gorequests/v\d+.\d+.\d+ \(https://github.com/chyroc/gorequests\)`).MatchString(resp.UserAgent),
+		as.True(regexp.MustCompile(`gorequests/v\d+.\d+.\d+ \(https://github.com/cairc/gorequests\)`).MatchString(resp.UserAgent),
 			fmt.Sprintf("%s not match user-agent", resp.UserAgent))
 	})
 

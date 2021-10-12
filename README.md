@@ -1,18 +1,18 @@
 # gorequests
 
-[![codecov](https://codecov.io/gh/chyroc/gorequests/branch/master/graph/badge.svg?token=Z73T6YFF80)](https://codecov.io/gh/chyroc/gorequests)
-[![go report card](https://goreportcard.com/badge/github.com/chyroc/gorequests "go report card")](https://goreportcard.com/report/github.com/chyroc/gorequests)
-[![test status](https://github.com/chyroc/gorequests/actions/workflows/test.yml/badge.svg)](https://github.com/chyroc/gorequests/actions)
+[![codecov](https://codecov.io/gh/cairc/gorequests/branch/master/graph/badge.svg?token=Z73T6YFF80)](https://codecov.io/gh/cairc/gorequests)
+[![go report card](https://goreportcard.com/badge/github.com/cairc/gorequests "go report card")](https://goreportcard.com/report/github.com/cairc/gorequests)
+[![test status](https://github.com/cairc/gorequests/actions/workflows/test.yml/badge.svg)](https://github.com/cairc/gorequests/actions)
 [![Apache-2.0 license](https://img.shields.io/badge/License-Apache%202.0-brightgreen.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Go.Dev reference](https://img.shields.io/badge/go.dev-reference-blue?logo=go&logoColor=white)](https://pkg.go.dev/github.com/chyroc/gorequests)
-[![Go project version](https://badge.fury.io/go/github.com%2Fchyroc%2Fgorequests.svg)](https://badge.fury.io/go/github.com%2Fchyroc%2Fgorequests)
+[![Go.Dev reference](https://img.shields.io/badge/go.dev-reference-blue?logo=go&logoColor=white)](https://pkg.go.dev/github.com/cairc/gorequests)
+[![Go project version](https://badge.fury.io/go/github.com%2Fcairc%2Fgorequests.svg)](https://badge.fury.io/go/github.com%2Fcairc%2Fgorequests)
 
 > Simple and easy-to-use go http client, supports cookies, streaming calls, custom logs and other functions
 
 ## Install
 
 ```shell
-go get github.com/chyroc/gorequests
+go get github.com/cairc/gorequests
 ```
 
 ## Usage

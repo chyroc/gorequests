@@ -47,7 +47,7 @@ func New(method, url string) *Request {
 		context: context.TODO(),
 		logger:  NewStdoutLogger(),
 	}
-	r.header.Set("user-agent", fmt.Sprintf("gorequests/%s (https://github.com/chyroc/gorequests)", version))
+	r.header.Set("user-agent", fmt.Sprintf("gorequests/%s (https://github.com/cairc/gorequests)", version))
 	return r
 }
 
