@@ -11,12 +11,18 @@ type Session struct {
 	jar        *cookiejar.Jar
 	err        error
 	cookiefile string
+	options    []RequestOption
 }
 
 func (r *Session) New(method, url string) *Request {
 	req := New(method, url)
 	req.persistentJar = r.jar
 	req.SetError(r.err)
+	for _, v := range r.options {
+		if err := v(req); err != nil {
+			return req.SetError(err)
+		}
+	}
 	return req
 }
 
@@ -38,7 +44,7 @@ func init() {
 }
 
 // same cookie-file has same session instance
-func NewSession(cookiefile string) *Session {
+func NewSession(cookiefile string, options ...RequestOption) *Session {
 	sessionLock.Lock()
 	defer sessionLock.Unlock()
 
@@ -47,18 +53,18 @@ func NewSession(cookiefile string) *Session {
 		return v
 	}
 
-	v = newSession(cookiefile)
+	v = newSession(cookiefile, options)
 	sessionMap[cookiefile] = v
 	return v
 }
 
-func newSession(cookiefile string) *Session {
+func newSession(cookiefile string, options []RequestOption) *Session {
 	jar, err := cookiejar.New(&cookiejar.Options{
 		Filename: cookiefile,
 	})
 	if err != nil {
-		return &Session{err: err, cookiefile: cookiefile}
+		return &Session{err: err, cookiefile: cookiefile, options: options}
 	} else {
-		return &Session{jar: jar, cookiefile: cookiefile}
+		return &Session{jar: jar, cookiefile: cookiefile, options: options}
 	}
 }
