@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	cookiejar "github.com/juju/persistent-cookiejar"
+	cookiejar "github.com/chyroc/persistent-cookiejar"
 )
 
 type Request struct {
