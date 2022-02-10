@@ -114,12 +114,7 @@ func (r *Request) ResponseHeadersByKey(key string) ([]string, error) {
 		return nil, err
 	}
 
-	for k, v := range r.resp.Header {
-		if key == k {
-			return v, nil
-		}
-	}
-	return nil, nil
+	return r.resp.Header.Values(key), nil
 }
 
 func (r *Request) MustResponseHeadersByKey(key string) []string {
@@ -132,15 +127,7 @@ func (r *Request) ResponseHeaderByKey(key string) (string, error) {
 		return "", err
 	}
 
-	for k, v := range r.resp.Header {
-		if key == k {
-			if len(v) > 0 {
-				return v[0], nil
-			}
-			return "", nil
-		}
-	}
-	return "", nil
+	return r.resp.Header.Get(key), nil
 }
 
 func (r *Request) MustResponseHeaderByKey(key string) string {
