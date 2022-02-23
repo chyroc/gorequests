@@ -122,6 +122,20 @@ func (r *Request) MustResponseHeadersByKey(key string) []string {
 	return val
 }
 
+func (r *Request) MustResponseCookiesByKey(key string) []string {
+	if err := r.doRequest(); err != nil {
+		return nil
+	}
+
+	var resp []string
+	for _, v := range r.resp.Cookies() {
+		if v.Name == key {
+			resp = append(resp, v.Value)
+		}
+	}
+	return resp
+}
+
 func (r *Request) ResponseHeaderByKey(key string) (string, error) {
 	if err := r.doRequest(); err != nil {
 		return "", err
