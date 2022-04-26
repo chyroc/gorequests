@@ -41,9 +41,10 @@ func (r *Request) doInternalRequest() error {
 	c := &http.Client{
 		Timeout: r.timeout,
 	}
-	if r.isIgnoreSSL {
-		c.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	if r.isIgnoreSSL || r.wrapRoundTripperResponse != nil {
+		c.Transport = &wrapRoundTripper{
+			isIgnoreSSL: r.isIgnoreSSL,
+			wrapResp:    r.wrapRoundTripperResponse,
 		}
 	}
 	if r.persistentJar != nil {
@@ -97,4 +98,29 @@ func (r *Request) doRequestFactor(f func() error) error {
 
 	r.err = f()
 	return r.err
+}
+
+type wrapRoundTripper struct {
+	isIgnoreSSL bool
+	wrapResp    func(resp *http.Response) (*http.Response, error)
+}
+
+func (lf wrapRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	var rt = &http.Transport{}
+	if lf.isIgnoreSSL {
+		rt.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+	resp, err := rt.RoundTrip(req)
+	if err != nil {
+		return resp, err
+	}
+
+	if lf.wrapResp != nil {
+		resp, err = lf.wrapResp(resp)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return resp, err
 }

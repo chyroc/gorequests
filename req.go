@@ -73,6 +73,13 @@ func (r *Request) WithIgnoreSSL(ignore bool) *Request {
 	})
 }
 
+// WithWrapRoundTripperResponse set round tripper response wrap
+func (r *Request) WithWrapRoundTripperResponse(f func(resp *http.Response) (*http.Response, error)) *Request {
+	return r.configParamFactor(func(r *Request) {
+		r.wrapRoundTripperResponse = f
+	})
+}
+
 // WithHeader set one header k-v map
 func (r *Request) WithHeader(k, v string) *Request {
 	return r.configParamFactor(func(r *Request) {

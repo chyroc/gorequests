@@ -32,10 +32,11 @@ type Request struct {
 	body         io.Reader           // request body
 
 	// resp
-	resp      *http.Response
-	bytes     []byte
-	isRead    bool
-	isRequest bool
+	wrapRoundTripperResponse func(resp *http.Response) (*http.Response, error) // wrap response
+	resp                     *http.Response
+	bytes                    []byte
+	isRead                   bool
+	isRequest                bool
 }
 
 func New(method, url string) *Request {
